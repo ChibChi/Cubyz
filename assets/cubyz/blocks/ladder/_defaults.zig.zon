@@ -1,0 +1,14 @@
+.{
+	.tags = .{.wood},
+	.blockHealth = 4,
+	.drops = .{
+		.{.items = .{.auto}},
+	},
+	.collide = true,
+	.alwaysViewThrough = true,
+	.absorbedLight = 0x121012,
+	.model = "cubyz:plane",
+	.rotation = .carpet,
+
+	.climbable = true
+}
