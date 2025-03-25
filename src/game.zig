@@ -455,6 +455,7 @@ pub const Player = struct { // MARK: Player
 	pub var eyeCoyote: f64 = 0;
 	pub var eyeStep: @Vector(3, bool) = .{false, false, false};
 	pub var crouching: bool = false;
+	pub var climbing: bool = false;
 	pub var id: u32 = 0;
 	pub var gamemode: Atomic(Gamemode) = .init(.creative);
 	pub var isFlying: Atomic(bool) = .init(false);
@@ -823,6 +824,37 @@ pub fn update(deltaTime: f64) void { // MARK: update()
 	const terminalVelocity = 90.0;
 	const airFrictionCoefficient = gravity/terminalVelocity; // λ = a/v in equillibrium
 	var move: Vec3d = .{0, 0, 0};
+
+	Player.climbing = blk: {
+		const forward = vec.rotateZ(Vec3d{0, 1, 0}, -camera.rotation[2]);
+		const moveDirections = [2]collision.Direction{.x, .y};
+		const climbCollisionAmount = [2]f64{std.math.sign(forward[0])*0.2, std.math.sign(forward[1])*0.2};
+
+		const x: i32 = @intFromFloat(@floor(Player.super.pos[0]));
+		const y: i32 = @intFromFloat(@floor(Player.super.pos[1]));
+		const z: i32 = @intFromFloat(@floor(Player.super.pos[2]));
+
+		for(moveDirections, climbCollisionAmount) |direction, amount| {
+			if(collision.collides(.client, direction, amount, Player.super.pos, .{.min = -Player.outerBoundingBoxExtent, .max = Player.outerBoundingBoxExtent*Vec3d{1, 1, 0}}) != null) {
+				const offset: Vec2d = switch(direction) {
+					.x => Vec2d{std.math.sign(amount), 0},
+					.y => Vec2d{0, std.math.sign(amount)},
+					else => unreachable,
+				};
+
+				const offsetX: i32 = @intFromFloat(offset[0]);
+				const offsetY: i32 = @intFromFloat(offset[1]);
+
+				const currentBlock = main.renderer.mesh_storage.getBlock(x, y, z);
+				const frontBlock = main.renderer.mesh_storage.getBlock(x + offsetX, y + offsetY, z);
+				const downBlock = main.renderer.mesh_storage.getBlock(x, y, z - 1);
+				const diagonalDownBlock = main.renderer.mesh_storage.getBlock(x + offsetX, y + offsetY, z - 1);
+
+				break :blk Player.climbing and (downBlock.?.climbable() or diagonalDownBlock.?.climbable()) or currentBlock.?.climbable() or frontBlock.?.climbable();
+			}
+		} else break :blk false;
+	};
+
 	if(main.renderer.mesh_storage.getBlock(@intFromFloat(@floor(Player.super.pos[0])), @intFromFloat(@floor(Player.super.pos[1])), @intFromFloat(@floor(Player.super.pos[2]))) != null) {
 		var acc = Vec3d{0, 0, 0};
 		if(!Player.isFlying.load(.monotonic)) {
