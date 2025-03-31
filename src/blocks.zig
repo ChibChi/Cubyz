@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const main = @import("root");
+const main = @import("main");
 const ZonElement = @import("zon.zig").ZonElement;
 const Neighbor = @import("chunk.zig").Neighbor;
 const graphics = @import("graphics.zig");
@@ -16,10 +16,14 @@ const rotation = @import("rotation.zig");
 const RotationMode = rotation.RotationMode;
 const Degrees = rotation.Degrees;
 const Entity = main.server.Entity;
+const entity_data = @import("entity_data.zig");
+const EntityDataClass = entity_data.EntityDataClass;
+const sbb = main.server.terrain.structure_building_blocks;
 
 pub const BlockTag = enum(u32) {
 	air = 0,
 	fluid = 1,
+	sbbChild = 2,
 	_,
 
 	var tagList: main.List([]const u8) = .init(allocator);
@@ -111,10 +115,9 @@ var _modeData: [maxBlockCount]u16 = undefined;
 var _lodReplacement: [maxBlockCount]u16 = undefined;
 var _opaqueVariant: [maxBlockCount]u16 = undefined;
 var _friction: [maxBlockCount]f32 = undefined;
-
 var _allowOres: [maxBlockCount]bool = undefined;
-
 var _touchFunction: [maxBlockCount]?*const TouchFunction = undefined;
+var _entityDataClass: [maxBlockCount]?*EntityDataClass = undefined;
 
 var reverseIndices = std.StringHashMap(u16).init(allocator.allocator);
 
@@ -143,6 +146,12 @@ pub fn register(_: []const u8, id: []const u8, zon: ZonElement) u16 {
 
 	_blockTags[size] = BlockTag.loadFromZon(allocator, zon.getChild("tags"));
 	if(_blockTags[size].len == 0) std.log.err("Block {s} is missing 'tags' field", .{id});
+	for(_blockTags[size]) |tag| {
+		if(tag == BlockTag.sbbChild) {
+			sbb.registerChildBlock(@intCast(size), _id[size]);
+			break;
+		}
+	}
 	_light[size] = zon.get(u32, "emittedLight", 0);
 	_absorption[size] = zon.get(u32, "absorbedLight", 0xffffff);
 	_degradable[size] = zon.get(bool, "degradable", false);
@@ -158,6 +167,7 @@ pub fn register(_: []const u8, id: []const u8, zon: ZonElement) u16 {
 	_friction[size] = zon.get(f32, "friction", 20);
 	_allowOres[size] = zon.get(bool, "allowOres", false);
 	_touchFunction[size] = TouchFunctions.getFunctionPointer(zon.get([]const u8, "touchFunction", ""));
+	_entityDataClass[size] = entity_data.getByID(zon.get(?[]const u8, "entityDataClass", null));
 
 	const oreProperties = zon.getChild("ore");
 	if(oreProperties != .null) blk: {
@@ -397,6 +407,10 @@ pub const Block = packed struct { // MARK: Block
 
 	pub inline fn touchFunction(self: Block) ?*const TouchFunction {
 		return _touchFunction[self.typ];
+	}
+
+	pub fn entityDataClass(self: Block) ?*EntityDataClass {
+		return _entityDataClass[self.typ];
 	}
 
 	pub fn canBeChangedInto(self: Block, newBlock: Block, item: main.items.ItemStack, shouldDropSourceBlockOnSuccess: *bool) main.rotation.RotationMode.CanBeChangedInto {

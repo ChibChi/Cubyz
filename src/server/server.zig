@@ -1,7 +1,7 @@
 const std = @import("std");
 const Atomic = std.atomic.Value;
 
-const main = @import("root");
+const main = @import("main");
 const chunk = main.chunk;
 const network = main.network;
 const Connection = network.Connection;
@@ -30,6 +30,7 @@ pub const WorldEditData = struct {
 	selectionPosition2: ?Vec3i = null,
 	clipboard: ?Blueprint = null,
 	undoHistory: History,
+	redoHistory: History,
 
 	const History = struct {
 		changes: CircularBufferQueue(Value),
@@ -69,13 +70,14 @@ pub const WorldEditData = struct {
 		}
 	};
 	pub fn init() WorldEditData {
-		return .{.undoHistory = History.init()};
+		return .{.undoHistory = History.init(), .redoHistory = History.init()};
 	}
 	pub fn deinit(self: *WorldEditData) void {
 		if(self.clipboard != null) {
 			self.clipboard.?.deinit(main.globalAllocator);
 		}
 		self.undoHistory.deinit();
+		self.redoHistory.deinit();
 	}
 };
 
@@ -432,9 +434,8 @@ fn update() void { // MARK: update()
 }
 
 pub fn start(name: []const u8, port: ?u16) void {
-	var sta = main.heap.StackAllocator.init(main.globalAllocator, 1 << 23);
-	defer sta.deinit();
-	main.stackAllocator = sta.allocator();
+	main.initThreadLocals();
+	defer main.deinitThreadLocals();
 	std.debug.assert(!running.load(.monotonic)); // There can only be one server.
 	init(name, port);
 	defer deinit();

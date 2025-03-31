@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const main = @import("root");
+const main = @import("main");
 const User = main.server.User;
 const vec = main.vec;
 const Vec3i = vec.Vec3i;
@@ -31,6 +31,7 @@ pub fn execute(args: []const u8, source: *User) void {
 		switch(undo) {
 			.success => |blueprint| {
 				source.worldEditData.undoHistory.push(.init(blueprint, pos, "paste"));
+				source.worldEditData.redoHistory.clear();
 			},
 			.failure => {
 				source.sendMessage("#ff0000Error: Could not capture undo history.", .{});

@@ -3,7 +3,7 @@ const std = @import("std");
 const chunk = @import("chunk.zig");
 const Neighbor = chunk.Neighbor;
 const graphics = @import("graphics.zig");
-const main = @import("main.zig");
+const main = @import("main");
 const vec = @import("vec.zig");
 const Vec3i = vec.Vec3i;
 const Vec3f = vec.Vec3f;
@@ -443,7 +443,7 @@ pub fn getModelIndex(string: []const u8) ModelIndex {
 
 var quads: main.List(QuadInfo) = undefined;
 var extraQuadInfos: main.List(ExtraQuadInfo) = undefined;
-var models: main.VirtualList(Model, 1 << 20) = undefined;
+var models: main.utils.VirtualList(Model, 1 << 20) = undefined;
 
 var quadDeduplication: std.AutoHashMap([@sizeOf(QuadInfo)]u8, QuadIndex) = undefined;
 

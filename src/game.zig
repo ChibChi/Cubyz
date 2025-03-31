@@ -8,7 +8,7 @@ const ClientItemDropManager = itemdrop.ClientItemDropManager;
 const items = @import("items.zig");
 const Inventory = items.Inventory;
 const ZonElement = @import("zon.zig").ZonElement;
-const main = @import("main.zig");
+const main = @import("main");
 const KeyBoard = main.KeyBoard;
 const network = @import("network.zig");
 const Connection = network.Connection;
@@ -568,6 +568,9 @@ pub const Player = struct { // MARK: Player
 
 	pub fn placeBlock() void {
 		if(main.renderer.MeshSelection.selectedBlockPos) |blockPos| {
+			if(!main.KeyBoard.key("shift").pressed) {
+				if(main.renderer.mesh_storage.triggerOnInteractBlock(blockPos[0], blockPos[1], blockPos[2]) == .handled) return;
+			}
 			const block = main.renderer.mesh_storage.getBlock(blockPos[0], blockPos[1], blockPos[2]) orelse main.blocks.Block{.typ = 0, .data = 0};
 			const gui = block.gui();
 			if(gui.len != 0 and !main.KeyBoard.key("shift").pressed) {
