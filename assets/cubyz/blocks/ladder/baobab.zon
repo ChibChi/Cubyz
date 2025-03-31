@@ -1,0 +1,6 @@
+.{
+	.texture = "cubyz:ladder/baobab",
+	.item = .{
+		.texture = "ladder/oak.png",
+	},
+}
