@@ -836,7 +836,7 @@ pub fn update(deltaTime: f64) void { // MARK: update()
 	Player.climbing = blk: {
 		const forward = vec.rotateZ(Vec3d{0, 1, 0}, -camera.rotation[2]);
 		const moveDirections = [2]collision.Direction{.x, .y};
-		const climbCollisionAmount = [2]f64{std.math.sign(forward[0])*0.2, std.math.sign(forward[1])*0.2};
+		const climbCollisionAmount = [2]f64{std.math.sign(forward[0])*0.5, std.math.sign(forward[1])*0.5};
 
 		const x: i32 = @intFromFloat(@floor(Player.super.pos[0]));
 		const y: i32 = @intFromFloat(@floor(Player.super.pos[1]));
