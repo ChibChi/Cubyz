@@ -8,7 +8,7 @@
 	.alwaysViewThrough = true,
 	.absorbedLight = 0x121012,
 	.model = "cubyz:plane",
-	.rotation = .carpet,
+	.rotation = .ladder,
 
 	.climbable = true
 }
