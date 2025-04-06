@@ -14,6 +14,7 @@ pub const files = @import("files.zig");
 pub const game = @import("game.zig");
 pub const graphics = @import("graphics.zig");
 pub const itemdrop = @import("itemdrop.zig");
+pub const particles = @import("particles.zig");
 pub const items = @import("items.zig");
 pub const JsonElement = @import("json.zig").JsonElement;
 pub const migrations = @import("migrations.zig");
@@ -617,6 +618,9 @@ pub fn main() void { // MARK: main()
 
 	itemdrop.ItemDropRenderer.init();
 	defer itemdrop.ItemDropRenderer.deinit();
+
+	particles.ParticleRenderer.init();
+	defer particles.ParticleRenderer.deinit();
 
 	assets.init();
 	defer assets.deinit();

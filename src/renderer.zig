@@ -10,6 +10,7 @@ const Shader = graphics.Shader;
 const game = @import("game.zig");
 const World = game.World;
 const itemdrop = @import("itemdrop.zig");
+const particles = @import("particles.zig");
 const main = @import("main");
 const Window = main.Window;
 const models = @import("models.zig");
@@ -138,6 +139,7 @@ pub fn render(playerPosition: Vec3d, deltaTime: f64) void {
 		game.fog.skyColor = skyColor;
 
 		itemdrop.ItemDisplayManager.update(deltaTime);
+		particles.ParticleManager.update(deltaTime);
 		renderWorld(world, ambient, skyColor, playerPosition);
 		const startTime = std.time.milliTimestamp();
 		mesh_storage.updateMeshes(startTime + maximumMeshTime);
@@ -223,6 +225,7 @@ pub fn renderWorld(world: *World, ambientLight: Vec3f, skyColor: Vec3f, playerPo
 	entity.ClientEntityManager.render(game.projectionMatrix, ambientLight, .{1, 0.5, 0.25}, playerPos);
 
 	itemdrop.ItemDropRenderer.renderItemDrops(game.projectionMatrix, ambientLight, playerPos);
+	particles.ParticleRenderer.renderParticles(game.projectionMatrix, ambientLight, playerPos);
 	gpu_performance_measuring.stopQuery();
 
 	// Render transparent chunk meshes:
